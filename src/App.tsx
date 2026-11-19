@@ -1157,6 +1157,9 @@ export function App({ store }: { store: ProgressStore }) {
         <footer>
           <Layers3 /> FullStack Fieldbook{' '}
           <span>Phase 1 · Learning foundation</span>
+          <a href="https://github.com/Tamish-Technologies/fullstack-fieldbook">
+            View source on GitHub
+          </a>
         </footer>
       </div>
       {drawer && (

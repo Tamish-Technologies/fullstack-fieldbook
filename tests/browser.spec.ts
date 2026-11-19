@@ -237,6 +237,14 @@ for (const width of [320, 834, 1440])
       await page.setViewportSize({ width, height: 900 })
       await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' })
       await page.goto('/')
+      const sourceLink = page.getByRole('contentinfo').getByRole('link', {
+        name: 'View source on GitHub',
+      })
+      await expect(sourceLink).toBeVisible()
+      await expect(sourceLink).toHaveAttribute(
+        'href',
+        'https://github.com/Tamish-Technologies/fullstack-fieldbook',
+      )
       // macOS WebKit uses Option-Tab to include links in the tab order.
       const tab = browserName === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab'
       await page.keyboard.press(tab)
@@ -271,6 +279,7 @@ for (const width of [320, 834, 1440])
       await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
       for (const path of [first, second, '/course', '/settings']) {
         await page.goto(path)
+        await expect(sourceLink).toBeVisible()
         await noOverflow(page)
         await accessible(page)
         if (path === second) {
