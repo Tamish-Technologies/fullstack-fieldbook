@@ -1,0 +1,25 @@
+role,foreground,background,context,calculated_ratio,target_ratio,review
+Light primary text,#111827,#FFFFFF,text,17.74,4.5,PASS
+Light lesson body,#334155,#FFFFFF,text,10.35,4.5,PASS
+Light secondary text,#475569,#FFFFFF,text,7.58,4.5,PASS
+Light action label,#FFFFFF,#4F46E5,text,6.29,4.5,PASS
+Light primary link,#4F46E5,#FFFFFF,text,6.29,4.5,PASS
+Light success text,#0F766E,#ECFDF5,text,5.20,4.5,PASS
+Light amber help,#A16207,#FFF7E9,text,4.63,4.5,PASS
+Light error text,#B91C1C,#FEF2F2,text,5.91,4.5,PASS
+Light focus ring vs canvas,#4F46E5,#F8FAFC,nontext,6.01,3.0,PASS
+Light border vs canvas,#E2E8F0,#F8FAFC,decorative,1.18,-,DECORATIVE ONLY
+Light example code,#E2E8F0,#0F172A,text,14.48,4.5,PASS
+Light example code line numbers,#94A3B8,#0F172A,text,6.96,4.5,PASS
+Light code keyword,#C4B5FD,#0F172A,text,9.67,4.5,PASS
+Light code property,#93C5FD,#0F172A,text,9.90,4.5,PASS
+Dark primary text,#F8FAFC,#111827,text,16.96,4.5,PASS
+Dark body text,#E2E8F0,#111827,text,14.39,4.5,PASS
+Dark secondary text,#CBD5E1,#111827,text,11.95,4.5,PASS
+Dark action label,#0B1220,#A5B4FC,text,9.39,4.5,PASS
+Dark primary link,#A5B4FC,#111827,text,8.90,4.5,PASS
+Dark success label,#5EEAD4,#123D37,text,8.12,4.5,PASS
+Dark amber label,#FBBF24,#3A2B17,text,8.18,4.5,PASS
+Dark error label,#FCA5A5,#3A2128,text,7.75,4.5,PASS
+Dark focus ring vs canvas,#A5B4FC,#0B1220,nontext,9.39,3.0,PASS
+Dark border vs canvas,#334155,#0B1220,decorative,1.81,-,DECORATIVE ONLY

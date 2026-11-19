@@ -1,0 +1,29 @@
+# Generated application and test output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+.env
+.env.*
+!.env.example
+# Private instructor reference inputs and local progress backups
+reference-materials/phase1/
+fullstack-fieldbook-source-materials/
+*progress-backup*.json
+*.local.json
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local owner-review captures
+*.mp4
+*.webm
+*.mov
+*.mkv
+docs/quality/d3-learner-audit/posters/
+docs/quality/d3-learner-audit/recordings/
+docs/quality/d3-learner-audit/index.html

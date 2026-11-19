@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Study Tasks | Week 2</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <p class="eyebrow">STUDENT PRODUCTIVITY</p>
+      <h1>Study Tasks</h1>
+      <p>Build habits one small task at a time.</p>
+    </header>
+
+    <form id="task-form" class="task-form">
+      <label for="task-input">New task</label>
+      <div class="form-row">
+        <input id="task-input" name="task" type="text"
+               placeholder="e.g. Practice array methods"
+               maxlength="100" required>
+        <button type="submit">Add task</button>
+      </div>
+      <p id="form-error" class="error" role="alert" hidden>
+        Enter a task with at least one non-space character.
+      </p>
+    </form>
+
+    <section aria-labelledby="tasks-heading" class="tasks-section">
+      <div class="section-heading">
+        <h2 id="tasks-heading">My tasks</h2>
+        <p id="remaining-count" class="count" aria-live="polite">
+          0 remaining
+        </p>
+      </div>
+
+      <div class="filters" role="group" aria-label="Filter tasks">
+        <button type="button" class="filter-button" data-filter="all"
+                aria-pressed="true">All</button>
+        <button type="button" class="filter-button" data-filter="active"
+                aria-pressed="false">Active</button>
+        <button type="button" class="filter-button" data-filter="completed"
+                aria-pressed="false">Completed</button>
+      </div>
+
+      <p id="empty-state" class="empty-state">
+        No tasks yet. Add your first one.
+      </p>
+      <ul id="task-list" class="task-list"></ul>
+      <p id="storage-notice" class="storage-notice" role="status" hidden>
+        Tasks could not be saved in this browser. They may disappear on reload.
+      </p>
+    </section>
+  </main>
+</body>
+</html>

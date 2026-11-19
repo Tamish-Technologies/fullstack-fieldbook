@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-fieldbook-fixture'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>Study Tasks layout fixture</title>
+<style>
+  * { box-sizing: border-box }
+  body { margin: 0; padding: 12px; color: #18261f; background: #fff; font: 1rem/1.4 system-ui, sans-serif }
+  label { display: block; margin-bottom: .5rem }
+  input, button { min-width: 0; padding: .3em .5em; font: inherit }
+  input { flex: 1 }
+  :focus-visible { outline: 2px solid #056443; outline-offset: 2px }
+  .controls { /* wide declarations */ }
+  @media (max-width: 36rem) { .controls { /* narrow declarations */ } }
+</style>
+<form>
+  <label for="title">Task title</label>
+  <div class="controls"><input id="title" value="Read"><button type="button">Add study task</button></div>
+</form>
+<script nonce="fieldbook-fixture">
+  document.querySelector('form').addEventListener('submit', event => event.preventDefault())
+  function measure(fontSize) {
+    document.documentElement.style.fontSize = fontSize + 'px'
+    const input = document.querySelector('input')
+    const button = document.querySelector('button')
+    const field = input.getBoundingClientRect()
+    const action = button.getBoundingClientRect()
+    const range = document.createRange()
+    range.selectNodeContents(button)
+    const label = range.getBoundingClientRect()
+    const inside = rect => rect.left >= 0 && rect.right <= innerWidth + 1 &&
+      rect.top >= 0 && rect.bottom <= innerHeight + 1
+    const fits = inside(field) && inside(action) &&
+      field.width >= fontSize * 4 && action.width >= 24 &&
+      field.height >= 24 && action.height >= 24 &&
+      label.left >= action.left && label.right <= action.right + 1 &&
+      label.top >= action.top && label.bottom <= action.bottom + 1 &&
+      document.documentElement.scrollWidth <= innerWidth + 1
+    const row = Math.min(field.bottom, action.bottom) > Math.max(field.top, action.top) &&
+      (field.right <= action.left + 1 || action.right <= field.left + 1)
+    const stack = action.top >= field.bottom + 1 &&
+      Math.min(field.right, action.right) > Math.max(field.left, action.left)
+    return { width: innerWidth, fontSize, row, stack, fits }
+  }
+  addEventListener('message', event => {
+    if (event.source !== parent || event.data !== 'measure-layout' || event.ports.length !== 1) return
+    const port = event.ports[0]
+    const samples = [measure(16), measure(24)]
+    document.documentElement.style.fontSize = ''
+    port.postMessage(samples)
+    port.close()
+  })
+</script>
+</html>

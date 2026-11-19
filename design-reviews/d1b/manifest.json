@@ -1,0 +1,191 @@
+[
+  {
+    "id": "S1",
+    "title": "Welcome & orientation",
+    "variant": "desktop",
+    "html": "screens/S1_desktop.html",
+    "image": "previews/S1_desktop.png"
+  },
+  {
+    "id": "S1",
+    "title": "Welcome & orientation",
+    "variant": "mobile",
+    "html": "screens/S1_mobile.html",
+    "image": "previews/S1_mobile.png"
+  },
+  {
+    "id": "S2",
+    "title": "Course dashboard",
+    "variant": "desktop",
+    "html": "screens/S2_desktop.html",
+    "image": "previews/S2_desktop.png"
+  },
+  {
+    "id": "S2",
+    "title": "Course dashboard",
+    "variant": "mobile",
+    "html": "screens/S2_mobile.html",
+    "image": "previews/S2_mobile.png"
+  },
+  {
+    "id": "S3",
+    "title": "Week overview",
+    "variant": "desktop",
+    "html": "screens/S3_desktop.html",
+    "image": "previews/S3_desktop.png"
+  },
+  {
+    "id": "S4",
+    "title": "Lesson reader",
+    "variant": "desktop",
+    "html": "screens/S4_desktop.html",
+    "image": "previews/S4_desktop.png"
+  },
+  {
+    "id": "S4",
+    "title": "Lesson reader",
+    "variant": "mobile",
+    "html": "screens/S4_mobile.html",
+    "image": "previews/S4_mobile.png"
+  },
+  {
+    "id": "S4",
+    "title": "Lesson reader",
+    "variant": "dark-desktop",
+    "html": "screens/S4_dark-desktop.html",
+    "image": "previews/S4_dark-desktop.png"
+  },
+  {
+    "id": "S4M",
+    "title": "Mobile course outline drawer",
+    "variant": "mobile",
+    "html": "screens/S4M_mobile.html",
+    "image": "previews/S4M_mobile.png"
+  },
+  {
+    "id": "S5",
+    "title": "Quiz: essential check failed",
+    "variant": "desktop",
+    "html": "screens/S5_desktop.html",
+    "image": "previews/S5_desktop.png"
+  },
+  {
+    "id": "S5",
+    "title": "Quiz: essential check failed",
+    "variant": "mobile",
+    "html": "screens/S5_mobile.html",
+    "image": "previews/S5_mobile.png"
+  },
+  {
+    "id": "S5P",
+    "title": "Quiz: mastery passed",
+    "variant": "desktop",
+    "html": "screens/S5P_desktop.html",
+    "image": "previews/S5P_desktop.png"
+  },
+  {
+    "id": "S6",
+    "title": "Coding lab",
+    "variant": "desktop",
+    "html": "screens/S6_desktop.html",
+    "image": "previews/S6_desktop.png"
+  },
+  {
+    "id": "S6",
+    "title": "Coding lab",
+    "variant": "mobile",
+    "html": "screens/S6_mobile.html",
+    "image": "previews/S6_mobile.png"
+  },
+  {
+    "id": "S6",
+    "title": "Coding lab",
+    "variant": "dark-desktop",
+    "html": "screens/S6_dark-desktop.html",
+    "image": "previews/S6_dark-desktop.png"
+  },
+  {
+    "id": "S6T",
+    "title": "Mobile coding lab \u00b7 Tests tab",
+    "variant": "mobile",
+    "html": "screens/S6T_mobile.html",
+    "image": "previews/S6T_mobile.png"
+  },
+  {
+    "id": "S7",
+    "title": "Local project self-verification",
+    "variant": "desktop",
+    "html": "screens/S7_desktop.html",
+    "image": "previews/S7_desktop.png"
+  },
+  {
+    "id": "S7",
+    "title": "Local project self-verification",
+    "variant": "mobile",
+    "html": "screens/S7_mobile.html",
+    "image": "previews/S7_mobile.png"
+  },
+  {
+    "id": "S8",
+    "title": "Progress & review",
+    "variant": "desktop",
+    "html": "screens/S8_desktop.html",
+    "image": "previews/S8_desktop.png"
+  },
+  {
+    "id": "S9",
+    "title": "Settings & reset",
+    "variant": "desktop",
+    "html": "screens/S9_desktop.html",
+    "image": "previews/S9_desktop.png"
+  },
+  {
+    "id": "S9",
+    "title": "Settings & reset",
+    "variant": "mobile",
+    "html": "screens/S9_mobile.html",
+    "image": "previews/S9_mobile.png"
+  },
+  {
+    "id": "S9R",
+    "title": "Reset consequences preview",
+    "variant": "desktop",
+    "html": "screens/S9R_desktop.html",
+    "image": "previews/S9R_desktop.png"
+  },
+  {
+    "id": "S9R",
+    "title": "Reset consequences preview",
+    "variant": "mobile",
+    "html": "screens/S9R_mobile.html",
+    "image": "previews/S9R_mobile.png"
+  },
+  {
+    "id": "S9I",
+    "title": "Progress import confirmation",
+    "variant": "desktop",
+    "html": "screens/S9I_desktop.html",
+    "image": "previews/S9I_desktop.png"
+  },
+  {
+    "id": "S10",
+    "title": "Locked prerequisite",
+    "variant": "desktop",
+    "html": "screens/S10_desktop.html",
+    "image": "previews/S10_desktop.png"
+  },
+  {
+    "id": "S10",
+    "title": "Locked prerequisite",
+    "variant": "mobile",
+    "html": "screens/S10_mobile.html",
+    "image": "previews/S10_mobile.png"
+  },
+  {
+    "id": "S10O",
+    "title": "Offline state",
+    "variant": "desktop",
+    "html": "screens/S10O_desktop.html",
+    "image": "previews/S10O_desktop.png"
+  }
+]
