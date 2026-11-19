@@ -202,7 +202,10 @@ test('a downloaded update waits for existing tabs and preserves learner progress
     await oldTab.goto(host.origin + '/settings')
     await expect(oldTab.getByText(readyText)).toBeVisible()
     host.makeUpdateAvailable()
-    await oldTab.getByRole('button', { name: 'Check for updates' }).click()
+    const [updateWorker] = await Promise.all([
+      context.waitForEvent('serviceworker'),
+      oldTab.getByRole('button', { name: 'Check for updates' }).click(),
+    ])
     await expect(oldTab.getByText(/An update is ready/)).toBeVisible()
     expect(await oldTab.locator('meta[name=qa-release]').count()).toBe(0)
     expect(await oldTab.evaluate(async (prefix) =>
@@ -210,9 +213,14 @@ test('a downloaded update waits for existing tabs and preserves learner progress
     await oldTab.reload()
     await expect(oldTab.getByText(/An update is ready/)).toBeVisible()
     expect(await oldTab.locator('meta[name=qa-release]').count()).toBe(0)
-    const updated = await context.newPage()
     await page.close()
     await oldTab.close()
+    // Closing the last tab lets the browser activate the worker asynchronously.
+    await expect.poll(() => updateWorker.evaluate(() => {
+      const scope = self as unknown as { serviceWorker: ServiceWorker }
+      return scope.serviceWorker.state
+    })).toBe('activated')
+    const updated = await context.newPage()
     await updated.goto(host.origin + '/settings')
     await expect(updated.locator('meta[name=qa-release]')).toHaveAttribute('content', 'updated')
     await expect(updated.getByText(readyText)).toBeVisible()
