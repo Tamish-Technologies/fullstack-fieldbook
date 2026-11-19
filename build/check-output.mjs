@@ -12,6 +12,8 @@ const downloads = new Map([
   [11, '0d6b63573efc99c9edba493dce0d5ae6390b52867b0595746945e3bebd29bcb7'],
   [12, 'c9c08208efe1bd8e39b9728490516bd8b07d38a4862e00ae9ecaf7cfdb069c4e'],
 ].map(([week, digest]) => ['projects/study-tasks-v' + week + '.zip', digest]))
+// Cloudflare consumes these files at the host. The offline worker needs only the course assets.
+const hostingFiles = new Set(['_redirects', '404.html'])
 const required = new Set([
   'index.html',
   'LICENSE',
@@ -21,6 +23,7 @@ const required = new Set([
   'icons/icon-192.png',
   'icons/icon-512.png',
   ...downloads.keys(),
+  ...hostingFiles,
 ])
 const bundle = /^assets\/(?:index-[\w-]+\.(?:js|css)|(?:Article|CodeLab|parser\.worker)-[\w-]+\.js)$/
 const privateMaterial = /instructor-guide|code-starter-and-reference|fullstack-fieldbook-source-materials|postgres(?:ql)?:\/\/[^\s]+@|BEGIN (?:RSA |EC )?PRIVATE KEY|D2_ONLY_TEST_FIXTURE/i
@@ -39,11 +42,12 @@ for (const name of names) {
     throw Error('Unexpected build asset: ' + name)
   required.delete(name)
   const body = readFileSync('dist/' + name)
+  if (/\.(?:html|js|css|webmanifest)$/.test(name) && privateMaterial.test(body.toString('utf8')))
+    throw Error('Private or test-only content in ' + name)
+  if (hostingFiles.has(name)) continue
   const hash = createHash('sha256').update(body).digest()
   if (downloads.has(name) && hash.toString('hex') !== downloads.get(name))
     throw Error('Learner archive checksum differs from the reviewed copy: ' + name)
-  if (/\.(?:html|js|css|webmanifest)$/.test(name) && privateMaterial.test(body.toString('utf8')))
-    throw Error('Private or test-only content in ' + name)
   files.push(['/' + name, 'sha256-' + hash.toString('base64')])
 }
 if (required.size) throw Error('Required build files are missing: ' + [...required].join(', '))

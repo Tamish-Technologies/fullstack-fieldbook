@@ -1,0 +1,6 @@
+/index.html / 200
+/course / 200
+/course/week/:week / 200
+/course/week/:week/lesson/:lesson / 200
+/progress / 200
+/settings / 200

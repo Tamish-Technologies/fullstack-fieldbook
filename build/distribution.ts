@@ -38,6 +38,13 @@ export function distribution(): Plugin {
       for (const [fileName, entry] of files) {
         this.emitFile({ type: 'asset', fileName, source: readFileSync(entry.path) })
       }
+      for (const fileName of ['_redirects', '404.html']) {
+        this.emitFile({
+          type: 'asset',
+          fileName,
+          source: readFileSync(new URL('./cloudflare/' + fileName, import.meta.url)),
+        })
+      }
     },
   }
 }

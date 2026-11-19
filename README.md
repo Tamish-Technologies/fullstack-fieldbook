@@ -62,6 +62,16 @@ npm run build
 npm run test:e2e -- --workers=1
 ```
 
+## Build for manual upload
+
+From the repository root, use Node.js 24. Run `npm ci` on a fresh checkout or after the dependency lockfile changes. For each upload, run:
+
+```sh
+npm run build
+```
+
+The build creates `dist/` in this repository with the static site, offline files, and Cloudflare Pages routing files. Drag the whole `dist/` folder into your existing Pages project's upload box. Each build replaces the previous output, and Git ignores `dist/`.
+
 ## Contribute
 
 Help us make FullStack Fieldbook a full-stack learning resource anyone can use and improve. Learners, educators, and developers are welcome to contribute.
