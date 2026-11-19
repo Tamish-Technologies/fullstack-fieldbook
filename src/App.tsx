@@ -41,7 +41,7 @@ import {
 } from './course'
 import { evaluate, type LearningState, type Progress } from './learning'
 import { MAX_NOTE } from './backup'
-import { usePath } from './router'
+import { useLocation } from './router'
 import type { ProgressStore } from './store'
 import { Practical } from './components/Practical'
 import { projects, labFor, activeQuizzes } from './content/catalog'
@@ -493,14 +493,12 @@ function Reader({
   state,
   store,
   review = false,
-  opening = false,
 }: {
   lesson: Lesson
   record: Progress
   state: LearningState
   store: ProgressStore
   review?: boolean
-  opening?: boolean
 }) {
   const reading = published(lesson.week)
   const quiz = activeQuizzes.find((q) =>
@@ -525,13 +523,6 @@ function Reader({
       <h1>{lesson.title}</h1>
     </>
   )
-  if (opening)
-    return (
-      <>
-        {heading}
-        <p role="status">Opening lesson…</p>
-      </>
-    )
   return (
     <>
       {heading}
@@ -813,7 +804,7 @@ export function App({ store }: { store: ProgressStore }) {
     store.getSnapshot,
   )
   const state = useMemo(() => evaluate(record), [record])
-  const path = usePath()
+  const { path, fragment } = useLocation()
   const [drawer, setDrawer] = useState(false)
   const [error, setError] = useState('')
   const menu = useRef<HTMLButtonElement>(null)
@@ -845,33 +836,42 @@ export function App({ store }: { store: ProgressStore }) {
   }, [record.theme])
   useEffect(() => {
     document.title = title + ' · FullStack Fieldbook'
-    const anchor =
-      location.hash && document.getElementById(location.hash.slice(1))
+    const changedPath = initialPath.current !== path
+    if (changedPath) {
+      initialPath.current = path
+      setDrawer(false)
+      setError('')
+    }
+    const anchor = fragment && document.getElementById(fragment)
     if (anchor) {
       anchor.tabIndex = -1
       anchor.focus({ preventScroll: true })
       anchor.scrollIntoView()
-      initialPath.current = path
-      setDrawer(false)
-    } else if (initialPath.current !== path) {
-      initialPath.current = path
-      setDrawer(false)
-      setError('')
+    } else if (changedPath) {
       window.scrollTo(0, 0)
       main.current?.querySelector('h1')?.setAttribute('tabindex', '-1')
       main.current?.querySelector('h1')?.focus()
     }
-  }, [path, title])
-  useLayoutEffect(() => {
-    if (lesson && !missing && record.lastLessonId !== lesson.id)
-      void store
-        .update((p) =>
-          evaluate(p).blocked.has(lesson.id)
-            ? p
-            : { ...p, lastLessonId: lesson.id },
-        )
-        .catch((e) => setError(e.message))
-  }, [lesson, missing, record.lastLessonId, store])
+  }, [path, fragment, title])
+  const eligibleLessonId = missing ? undefined : lesson?.id
+  useEffect(() => {
+    if (!eligibleLessonId) return
+    let here = true
+    void store
+      .update((p) =>
+        !here ||
+        p.lastLessonId === eligibleLessonId ||
+        evaluate(p).blocked.has(eligibleLessonId)
+          ? p
+          : { ...p, lastLessonId: eligibleLessonId },
+      )
+      .catch((e) => {
+        if (here) setError(e.message)
+      })
+    return () => {
+      here = false
+    }
+  }, [eligibleLessonId, store])
   let view
   if (path === '/') view = <Dashboard {...{ record, state }} />
   else if (path === '/course')
@@ -949,11 +949,11 @@ export function App({ store }: { store: ProgressStore }) {
                   .sort(([, a], [, b]) => b.at.localeCompare(a.at))
                   .map(([id, attempt]) => {
                     const lesson = byId.get(id.slice(0, -4))!
-                    const quiz = activeQuizzes.find((q) => q.checkpoint === id)!
                     return (
                       <li key={id}>
                         <a href={lessonPath(lesson)}>{lesson.title}</a> · Last
-                        score {attempt.lastCorrect}/{quiz.questions.length} ·{' '}
+                        score {attempt.lastCorrect}
+                        {attempt.scored ? '/' + attempt.scored : ' correct'} ·{' '}
                         {attempt.count}{' '}
                         {attempt.count === 1 ? 'attempt' : 'attempts'}
                       </li>
@@ -985,13 +985,7 @@ export function App({ store }: { store: ProgressStore }) {
         <Locked missing={missing} />
       )
   else if (lesson)
-    view = (
-      <Reader
-        key={path}
-        {...{ lesson, record, state, store }}
-        opening={record.lastLessonId !== lesson.id && !error}
-      />
-    )
+    view = <Reader key={path} {...{ lesson, record, state, store }} />
   else if (week && !match?.[2])
     view = (
       <>

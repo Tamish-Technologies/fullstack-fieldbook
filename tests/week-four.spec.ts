@@ -1,3 +1,4 @@
+import { answerQuizRetry } from './quiz-retry'
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import {
@@ -50,7 +51,7 @@ test('a fresh mobile reviewer can read all twelve lessons, try labs and retry th
       await page
         .getByRole('button', { name: 'Retry with another example' })
         .click()
-      await weekFourQuiz(page, id)
+      await answerQuizRetry(page, 'p1-w04-l' + id)
       await expect(
         page.getByRole('heading', { name: /Quiz passed/ }),
       ).toBeVisible()

@@ -212,6 +212,7 @@ export function CodeLab({
   lab,
   code,
   concept,
+  keepsDraft,
   setConcept,
   edit,
   onPass,
@@ -221,6 +222,7 @@ export function CodeLab({
   lab: Lab
   code: string
   concept: string
+  keepsDraft: boolean
   setConcept: (value: string) => void
   edit: (value: string) => void
   onPass: () => void
@@ -230,12 +232,11 @@ export function CodeLab({
     <section className="panel layout-lab">
       <h2>Browser lab · {lab.title}</h2>
       <p>{lab.task}</p>
-      {/^w(?:[3-9]|1[0-2])-/.test(lesson) && (
-        <p className="small">
-          Your editor draft lasts until you leave this lesson. Keep a copy in
-          your local project.
-        </p>
-      )}
+      <p className="small">
+        {keepsDraft
+          ? 'Fieldbook keeps your draft in this browser and includes it in progress backups. Leave out credentials and personal details.'
+          : 'This practice draft stays here until you leave the lesson.'}
+      </p>
       <label htmlFor={lesson.endsWith('-copy') ? 'lab-copy-code' : 'lab-code'}>
         {['02', '03'].includes(lesson)
           ? 'HTML'

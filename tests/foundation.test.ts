@@ -22,6 +22,8 @@ import {
   validate,
 } from '../src/backup'
 import { createStore } from '../src/store'
+import { activeQuizzes } from '../src/content/catalog'
+import { quizForm, retryScenarios } from '../src/content/retry-scenarios'
 
 function evidence(c: Checkpoint): Evidence {
   const common = { id: c.id, at: '2026-11-18T00:00:00.000Z' }
@@ -195,6 +197,46 @@ describe('bounded learner-owned backups', () => {
     }
     expect(readBackup(exportBackup(p))).toEqual(p)
   })
+  it('keeps an earned pass and its original score after the quiz scale changes', async () => {
+    const checkpoint = entry.checks[0]!.id
+    const quiz = activeQuizzes.find((q) => q.checkpoint === checkpoint)!
+    const before = quiz.questions
+    const old = {
+      ...earnedOrientation(),
+      contentVersion: 'w12.1',
+      notes: { [entry.id]: 'Keep this note.' },
+      attempts: { [checkpoint]: { count: 1, lastCorrect: before.length, at: p.updatedAt } },
+    }
+    const raw = JSON.stringify(old)
+    try {
+      quiz.questions = [...before, { ...before[0]!, id: 'p1-w01-l01-q99', essential: true }]
+      const record = readStored(raw)
+      expect(record.notes).toEqual(old.notes)
+      expect(record.evidence).toEqual(old.evidence)
+      expect(evaluate(record).earned).toContain(checkpoint)
+      expect(readBackup(exportBackup(record))).toEqual(record)
+      const memory = { getItem: () => raw, setItem: () => {} }
+      const store = createStore(() => memory)
+      await store.update((current) => ({ ...current, theme: 'dark' }))
+      expect(store.getSnapshot().record.evidence).toEqual(old.evidence)
+    } finally {
+      quiz.questions = before
+    }
+  })
+  it('clears only changed or retired selections from an earlier quiz draft', () => {
+    const quiz = activeQuizzes.find((q) => q.checkpoint === 'p1-w01-l12-c02')!
+    const changed = quiz.questions.find((q) => retryScenarios.has(q.id))!
+    const unchanged = quiz.questions.find((q) => !retryScenarios.has(q.id))!
+    const old = {
+      ...emptyProgress(),
+      contentVersion: 'w12.1',
+      attempts: { [quiz.checkpoint]: { count: 1, lastCorrect: 3, at: p.updatedAt } },
+      quizDrafts: { [quiz.checkpoint]: { [changed.id]: 1, [unchanged.id]: 2, 'p1-w01-l12-q99': 1 } },
+    }
+    const migrated = readStored(JSON.stringify(old))
+    expect(migrated.quizDrafts).toEqual({ [quiz.checkpoint]: { [unchanged.id]: 2 } })
+    expect(migrated.attempts).toEqual(old.attempts)
+  })
   const p = emptyProgress()
   const first = evidence(entry.checks[0]!)
   it.each([
@@ -220,6 +262,22 @@ describe('bounded learner-owned backups', () => {
     expect(() => readBackup(' '.repeat(MAX_FILE + 1))).toThrow(/limit/)
     expect(() => readBackup(JSON.stringify(p))).toThrow()
   })
+})
+it('gives every weekly readiness essential a distinct retry scenario and feedback', () => {
+  const readinessIds = new Set(weeks.map((w) => w.lessons.at(-1)!.id))
+  const essentials = activeQuizzes
+    .filter((q) => readinessIds.has(q.checkpoint.slice(0, -4)))
+    .flatMap((q) => q.questions.filter((question) => question.essential))
+  expect(essentials).toHaveLength(23)
+  expect(retryScenarios.size).toBe(essentials.length)
+  for (const question of essentials) {
+    const initial = quizForm(question, false)
+    const retry = quizForm(question, true)
+    expect(retry.variant[0]).not.toBe(initial.variant[0])
+    expect(new Set(retry.variant.slice(1)).size).toBe(3)
+    expect(retry.variant[1]).not.toBe(initial.variant[1])
+    expect(new Set(retry.feedback).size).toBe(3)
+  }
 })
 describe('storage lifecycle', () => {
   function memory(initial: string | null = null) {

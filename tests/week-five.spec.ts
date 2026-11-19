@@ -1,3 +1,4 @@
+import { answerQuizRetry } from './quiz-retry'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
@@ -64,7 +65,7 @@ test('a fresh mobile reviewer can read all eleven React lessons, try labs and re
       await page
         .getByRole('button', { name: 'Retry with another example' })
         .click()
-      await weekFiveQuiz(page, id)
+      await answerQuizRetry(page, 'p1-w05-l' + id)
       await expect(
         page.getByRole('heading', { name: /Quiz passed/ }),
       ).toBeVisible()
@@ -116,6 +117,6 @@ test('the setup lesson downloads the reviewed student-only project', async ({
     .update(await readFile(file!))
     .digest('hex')
   expect(digest).toBe(
-    'a7773f9b50ba5ecd640f379904e2de325a54ef65fe4e846662ef48398268b558',
+    '1aec5792d399f47999d6d3d44b139325308efa6fc1d1f8b8294f157709211d6f',
   )
 })

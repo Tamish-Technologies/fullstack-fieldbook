@@ -100,3 +100,9 @@ Corrupt JSON; incompatible schema; blocked storage; quota errors; unknown IDs; m
 The current local record accepts two optional fields. Earlier Week 1 backups omit them. A quiz draft maps a known active quiz and question ID to a selected choice for its current attempt. The editable field-note draft and the explicitly saved note are separate, each with the same per-note length limit. Reading and storing drafts award no evidence. The development-only content review keeps choices in memory for the open quiz.
 
 Export and import preserve validated drafts. Submitting a quiz consumes its draft when the attempt is recorded. A scoped reset clears affected quiz drafts. The field-note deletion option also controls note drafts. Save commits the note and clears its draft. Discard restores the saved text, including an empty note for a first draft. The existing storage-denied and quota fallback keeps session data exportable.
+
+## Course revision w12.2
+
+Quiz evidence retains the score, question count, and essential checks from the attempt that earned it. The checkpoint ID must still identify an active quiz, and the score must satisfy a current or published score scale and its passing rules. When revising an existing quiz, preserve its released question and essential counts in `src/content/published-quiz-scales.ts`. Give a materially different learning outcome a new checkpoint ID and review its migration separately. Changes to required lab tests or project evidence formats also need an explicit migration.
+
+New attempt summaries include the original question count. When reading an earlier backup, Fieldbook keeps unchanged draft selections and clears selections for retired questions or revised readiness retry scenarios. Notes carry forward. Browser lab code drafts in all twelve weeks use the existing practical draft limits, backup and scoped reset behavior. Review-mode drafts stay in memory.

@@ -1,3 +1,4 @@
+import { answerQuizRetry } from './quiz-retry'
 import { createHash } from 'node:crypto'
 import { readFile } from 'node:fs/promises'
 import { test, expect } from '@playwright/test'
@@ -45,7 +46,7 @@ test('a fresh learner reviews 12 readings and both forms of each quiz without sa
       await page
         .getByRole('button', { name: 'Retry with another example' })
         .click()
-      await finishWeekSevenQuiz(page, quiz.checkpoint)
+      await answerQuizRetry(page, 'p1-w07-l' + id)
       await expect(
         page.getByRole('heading', { name: /Quiz passed/ }),
       ).toBeVisible()

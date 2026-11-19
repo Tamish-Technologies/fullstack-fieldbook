@@ -93,7 +93,7 @@ export default function Article({ lesson }: { lesson: Lesson }) {
   useLayoutEffect(() => {
     const anchor =
       location.hash && document.getElementById(location.hash.slice(1))
-    if (anchor && article.current?.contains(anchor)) {
+    if (anchor && article.current?.closest('main')?.contains(anchor)) {
       anchor.tabIndex = -1
       anchor.focus({ preventScroll: true })
       anchor.scrollIntoView()

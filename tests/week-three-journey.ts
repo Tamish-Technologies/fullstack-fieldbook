@@ -112,6 +112,19 @@ export async function walkWeekThree(page: Page) {
       new RegExp('/course/week/03/lesson/' + String(n).padStart(2, '0') + '$'),
     )
     await page.getByText('Check your prediction', { exact: true }).click()
+    if (n === 9) {
+      const draft = '// Keep my sort experiment here while I review the reading.'
+      await page.getByLabel('JavaScript editor').fill(draft)
+      await page.getByRole('combobox', { name: /Why did drawing Oldest/ }).selectOption('mutation')
+      await page.waitForFunction((source) => {
+        const raw = localStorage.getItem('fullstack-fieldbook.phase1.w01.v1')
+        const saved = raw && JSON.parse(raw).practicalDrafts?.['p1-w03-l09-c01']
+        return saved?.code === source && saved.concept === 'mutation'
+      }, draft)
+      await page.reload()
+      await expect(page.getByLabel('JavaScript editor')).toHaveValue(draft)
+      await expect(page.getByRole('combobox', { name: /Why did drawing Oldest/ })).toHaveValue('mutation')
+    }
     if (thirdWeekSolutions[n]) {
       await weekThreeLab(page, n, thirdWeekSolutions[n]!)
       await expect(page.locator('.lab-result')).not.toContainText('Try again')

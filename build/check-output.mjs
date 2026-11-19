@@ -3,7 +3,7 @@ import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { relative, sep } from 'node:path'
 
 const downloads = new Map([
-  [5, 'a7773f9b50ba5ecd640f379904e2de325a54ef65fe4e846662ef48398268b558'],
+  [5, '1aec5792d399f47999d6d3d44b139325308efa6fc1d1f8b8294f157709211d6f'],
   [6, '46472b6d08a5f51d6ca70b89b9a9a72b50fda2e288ae7d13a69598770eeb4374'],
   [7, '30c9e32161ee79ec13cb510876c74ebd021a49725cedff21e54a3c593f3d9c7f'],
   [8, 'e0f873e19b26c0004b9e9f8f04edb2064fd702233f11c874d4d3df41492da670'],

@@ -1,8 +1,18 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import type { Quiz } from '../content/quizzes'
+import { quizForm } from '../content/retry-scenarios'
 import { passes } from '../learning'
 import type { ProgressStore } from '../store'
 import { recordQuiz, score } from './assessment'
+
+function answerOrder(id: string, attempt: number) {
+  let hash = 2166136261
+  for (const letter of id + ':' + attempt)
+    hash = Math.imul(hash ^ letter.charCodeAt(0), 16777619) >>> 0
+  const first = hash % 3
+  const step = hash % 2 ? 1 : 2
+  return [first, (first + step) % 3, (first + 2 * step) % 3]
+}
 
 export function QuizForm({
   quiz,
@@ -37,7 +47,7 @@ export function QuizForm({
     if (result) summary.current?.focus()
     else if (started) first.current?.focus()
   }, [result, attempt, started])
-  const variant = attempt % 2 === 0 ? 0 : 1
+  const retry = attempt % 2 === 1
   const essentialCount = quiz.questions.filter((q) => q.essential).length
   const answers =
     store && !result
@@ -160,9 +170,8 @@ export function QuizForm({
             </div>
           )}
           {quiz.questions.map((q, i) => {
-            const [stem, ...options] = q.variants[variant]
-            const rotation = (i + attempt + 1) % 3
-            const order = [rotation, (rotation + 1) % 3, (rotation + 2) % 3]
+            const { variant: [stem, ...options], feedback } = quizForm(q, retry)
+            const order = answerOrder(q.id, attempt)
             const selected = answers[q.id]
             return (
               <fieldset
@@ -196,7 +205,7 @@ export function QuizForm({
                     tabIndex={-1}
                   >
                     <b>{selected === 0 ? 'Correct.' : 'Review.'}</b>{' '}
-                    {q.feedback[selected]} {selected !== 0 && q.feedback[0]}
+                    {feedback[selected]} {selected !== 0 && feedback[0]}
                   </p>
                 )}
               </fieldset>

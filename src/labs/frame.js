@@ -1,6 +1,9 @@
 // Fixed, trusted behavior checks. Learner markup is parsed in an inert
 // document. Only the form vocabulary below is copied into the live fixture.
 const root = document.querySelector('main')
+// The browser still rejects invalid submissions. Show lab feedback in the
+// exercise instead of opening a native validation popup inside the iframe.
+root.addEventListener('invalid', (event) => event.preventDefault(), true)
 const observed = []
 function formTree(from, into, depth = 0) {
   if (depth > 25) throw Error('Simplify the nesting in the form.')

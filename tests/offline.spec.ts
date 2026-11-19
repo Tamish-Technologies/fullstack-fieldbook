@@ -67,7 +67,10 @@ async function releaseHost() {
     origin: 'http://127.0.0.1:' + details.port,
     makeUpdateAvailable: () => { newest = true },
     tamperWithDownload: (value: boolean) => { tampered = value },
-    close: () => new Promise<void>((resolve) => server.close(() => resolve())),
+    close: () => new Promise<void>((resolve) => {
+      server.close(() => resolve())
+      server.closeAllConnections()
+    }),
   }
 }
 
@@ -154,6 +157,37 @@ test('an incomplete download fails safely, and a missing cache can be repaired',
     await expect(page.getByText(readyText)).toBeVisible()
     await page.goto(host.origin + lesson)
     await expect(page.getByLabel('Your private note for this lesson')).toHaveValue('<b>Offline study note</b>')
+  } finally {
+    await host.close()
+  }
+})
+
+test('a missing cached shell can recover online after the host advances to a new release', async ({ page, context }) => {
+  const host = await releaseHost()
+  try {
+    await prepare(page, host.origin)
+    await recordNote(page, host.origin + lesson)
+    const second = await context.newPage()
+    await second.goto(host.origin + '/course')
+    await page.evaluate(async (prefix) => {
+      const key = (await caches.keys()).find((name) => name.startsWith(prefix))!
+      await (await caches.open(key)).delete('/index.html')
+    }, cachePrefix)
+    host.makeUpdateAvailable()
+
+    await second.reload()
+    await expect(second.getByRole('heading', { name: 'Continue studying online' })).toBeVisible()
+    await second.getByRole('link', { name: 'Open the online lesson or page' }).click()
+    await expect(second.locator('meta[name=qa-release]')).toHaveAttribute('content', 'updated')
+    await expect(second.getByRole('heading', { name: 'Course roadmap' })).toBeVisible()
+    await second.goto(host.origin + lesson)
+    await expect(second.getByLabel('Your private note for this lesson')).toHaveValue('<b>Offline study note</b>')
+
+    await page.close()
+    await prepare(second, host.origin)
+    await context.setOffline(true)
+    await second.goto(host.origin + lesson)
+    await expect(second.getByLabel('Your private note for this lesson')).toHaveValue('<b>Offline study note</b>')
   } finally {
     await host.close()
   }

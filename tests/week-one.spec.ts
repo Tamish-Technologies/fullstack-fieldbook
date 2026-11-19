@@ -10,7 +10,7 @@ import { walkWeekFour } from './week-four-journey'
 import { expect, test, type Page } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { readFile } from 'node:fs/promises'
-import { walkWeekThree } from './week-three-journey'
+import { thirdWeekSolutions, walkWeekThree } from './week-three-journey'
 import { walkWeekTwo } from './week-two-journey'
 import { weekOne } from '../src/content/week-one'
 
@@ -64,11 +64,11 @@ const rubric: Record<string, [RegExp, RegExp][]> = {
   '12': [
     [/matching label\/id/, /labeled input in a form/],
     [/Preventing the form/, /Call event.preventDefault/],
-    [/Trim the value/, /trimmed string is nonempty/],
+    [/Trim the value/, /raw\.trim\(\) is empty/],
     [/^"skip"$/, /^"empty"$/],
     [/box.checked/, /Remove its completed class/],
     [/list.children.length === 0/, /remaining child count/],
-    [/span’s textContent/, /title node’s textContent/],
+    [/span’s textContent/, /label\.textContent = title/],
     [/returns null/, /^null when/],
     [/At 375px, not at 768px/, /Column, then row/],
     [/local history records/, /local snapshot exists/],
@@ -694,11 +694,10 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
   await (await exportAll).saveAs(allFile)
   const threeWeeks = JSON.parse(await readFile(allFile, 'utf8')).progress
   expect(threeWeeks.evidence).toHaveLength(58)
-  expect(
-    Object.keys(threeWeeks.practicalDrafts ?? {}).filter((id) =>
-      id.startsWith('p1-w03'),
-    ),
-  ).toEqual([])
+  expect(threeWeeks.practicalDrafts['p1-w03-l09-c01']).toEqual({
+    code: thirdWeekSolutions[9],
+    concept: 'mutation',
+  })
   await page.goto('/course/week/04')
   await expect(page.locator('h1')).not.toHaveText('This section is locked')
   await page.goto('/settings')
@@ -710,6 +709,8 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
     .getByRole('button', { name: 'Confirm replacement' })
     .click()
   await expect(page.getByRole('status')).toContainText('Progress updated')
+  expect(await page.evaluate((storageKey) =>
+    JSON.parse(localStorage.getItem(storageKey)!).practicalDrafts?.['p1-w03-l09-c01'], key)).toBeUndefined()
   await page.goto('/course/week/04')
   await expect(page.locator('h1')).toHaveText('This section is locked')
   await page.goto('/settings')
@@ -719,7 +720,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
     buffer: Buffer.from(
       JSON.stringify({
         ...JSON.parse(await readFile(allFile, 'utf8')),
-        progress: { ...threeWeeks, contentVersion: 'w03.1' },
+        progress: threeWeeks,
       }),
     ),
   })
@@ -728,6 +729,8 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
     .getByRole('button', { name: 'Confirm replacement' })
     .click()
   await expect(page.getByRole('status')).toContainText('Progress updated')
+  await page.goto('/course/week/03/lesson/09')
+  await expect(page.getByLabel('JavaScript editor')).toHaveValue(thirdWeekSolutions[9]!)
   await page.goto('/course/week/03/lesson/11')
   await expect(page.locator('main')).toContainText('Week 3 complete')
   await walkWeekFour(page)
@@ -742,10 +745,8 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
     four.evidence.filter((e: { id: string }) => e.id.startsWith('p1-w04-l10')),
   ).toEqual([])
   expect(
-    Object.keys(four.practicalDrafts ?? {}).filter((id) =>
-      id.startsWith('p1-w04'),
-    ),
-  ).toEqual([])
+    Object.keys(four.practicalDrafts).filter((id) => id.startsWith('p1-w04')).length,
+  ).toBeGreaterThan(0)
   await page.getByLabel('Reset scope').selectOption('lesson')
   await page
     .getByLabel('Lesson to reset', { exact: true })
@@ -841,7 +842,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
       entry.id.startsWith('p1-w06-'),
     ),
   ).toHaveLength(23)
-  expect(six.practicalDrafts?.['p1-w06-l10-c01']).toBeUndefined()
+  expect(six.practicalDrafts['p1-w06-l10-c01'].code).toBeTruthy()
   await page.getByLabel('Reset scope').selectOption('lesson')
   await page
     .getByLabel('Lesson to reset', { exact: true })
@@ -885,7 +886,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
       entry.id.startsWith('p1-w07-'),
     ),
   ).toHaveLength(24)
-  expect(seven.practicalDrafts?.['p1-w07-l06-c01']).toBeUndefined()
+  expect(seven.practicalDrafts['p1-w07-l06-c01'].code).toBeTruthy()
   await page.getByLabel('Reset scope').selectOption('lesson')
   await page
     .getByLabel('Lesson to reset', { exact: true })
@@ -929,7 +930,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
       entry.id.startsWith('p1-w08-'),
     ),
   ).toHaveLength(24)
-  expect(eight.practicalDrafts?.['p1-w08-l09-c02']).toBeUndefined()
+  expect(eight.practicalDrafts['p1-w08-l09-c02'].code).toBeTruthy()
   await page.getByLabel('Reset scope').selectOption('lesson')
   await page
     .getByLabel('Lesson to reset', { exact: true })
@@ -973,7 +974,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
       entry.id.startsWith('p1-w09-'),
     ),
   ).toHaveLength(24)
-  expect(nine.practicalDrafts?.['p1-w09-l10-c02']).toBeUndefined()
+  expect(nine.practicalDrafts['p1-w09-l10-c02'].code).toBeTruthy()
   await page.getByLabel('Reset scope').selectOption('lesson')
   await page
     .getByLabel('Lesson to reset', { exact: true })
@@ -1009,7 +1010,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
   const tenPath = testInfo.outputPath('ten-weeks.json')
   await (await exportTen).saveAs(tenPath)
   const { progress: ten } = JSON.parse(await readFile(tenPath, 'utf8'))
-  expect(ten.contentVersion).toBe('w12.1')
+  expect(ten.contentVersion).toBe('w12.2')
   expect(ten.evidence).toHaveLength(220)
   expect(ten.evidence.filter((entry: { id: string }) => entry.id.startsWith('p1-w10-'))).toHaveLength(24)
   await page.getByLabel('Reset scope').selectOption('lesson')
@@ -1039,7 +1040,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
   const elevenPath = testInfo.outputPath('eleven-weeks.json')
   await (await exportEleven).saveAs(elevenPath)
   const { progress: eleven } = JSON.parse(await readFile(elevenPath, 'utf8'))
-  expect(eleven.contentVersion).toBe('w12.1')
+  expect(eleven.contentVersion).toBe('w12.2')
   expect(eleven.evidence).toHaveLength(244)
   expect(eleven.evidence.filter((entry: { id: string }) => entry.id.startsWith('p1-w11-'))).toHaveLength(24)
   await page.getByLabel('Reset scope').selectOption('lesson')
@@ -1077,7 +1078,7 @@ test('a fresh learner earns 268 checkpoints across twelve weeks offline and veri
   const twelvePath = testInfo.outputPath('twelve-weeks.json')
   await (await exportTwelve).saveAs(twelvePath)
   const { progress: twelve } = JSON.parse(await readFile(twelvePath, 'utf8'))
-  expect(twelve.contentVersion).toBe('w12.1')
+  expect(twelve.contentVersion).toBe('w12.2')
   expect(twelve.evidence).toHaveLength(268)
   expect(twelve.evidence.find((entry: { id: string }) => entry.id === 'p1-w12-l11-c02')
     .responses.choice).toBe('Ready for local demo')
@@ -1156,13 +1157,14 @@ test('broken heading, Add control and invalid-submit branch each withhold master
   ] as const
   for (const [id, submission, failedCheck, summary] of examples) {
     await page.goto(learner + id)
+    await expect(page.getByRole('heading', { name: 'What you’ll be able to do' })).toBeVisible()
     await page.locator('#lab-code').fill(submission)
     await page.getByRole('button', { name: 'Run lab checks' }).click()
     if (id !== '02')
       await page
         .frameLocator('.lab-result iframe')
         .getByRole('button', { name: 'Test keyboard focus and run checks' })
-        .click()
+        .press('Enter')
     await expect(page.locator('.lab-result h3')).toContainText(summary)
     await expect(
       page.locator('.lab-result li').nth(failedCheck - 1),

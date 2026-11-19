@@ -58,7 +58,7 @@ self.addEventListener('message', (event) => {
   })())
 })
 
-async function availablePage() {
+async function availablePage(request) {
   try {
     let cache = await caches.open(CACHE)
     if (!(await hasFiles(cache, core))) cache = await prepare()
@@ -67,13 +67,34 @@ async function availablePage() {
   } catch {
     // A partial cache cannot safely supply the application shell.
   }
+  try {
+    const live = await fetch(request, { cache: 'no-store', redirect: 'error' })
+    const online = live.ok && /^text\/html\b/i.test(live.headers.get('Content-Type') || '')
+    await live.body?.cancel()
+    if (online) {
+      // Start the next navigation without this release so its HTML and assets
+      // come from the same online version. Leave the cache for existing tabs.
+      await self.registration.unregister()
+      return recoveryPage(new URL(request.url).pathname)
+    }
+  } catch {
+    // An offline browser still receives a page explaining how to reconnect.
+  }
+  return recoveryPage()
+}
+
+function recoveryPage(onlinePath) {
+  const title = onlinePath ? 'Continue studying online' : 'Offline copy unavailable'
   return new Response(`<!doctype html><html lang="en"><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Offline copy unavailable · FullStack Fieldbook</title>
-<main><h1>Offline copy unavailable</h1>
-<p>Reconnect, then reopen FullStack Fieldbook. If an update is waiting, close all Fieldbook tabs and app windows before reopening.</p>
+<title>${title} · FullStack Fieldbook</title>
+<main><h1>${title}</h1>
+${onlinePath
+  ? `<p>This browser’s offline copy is incomplete. Your saved progress is still available. Close any other Fieldbook tabs before downloading the course again in Settings.</p>
+<p><a href="${onlinePath}">Open the online lesson or page</a></p>`
+  : `<p>Reconnect, then reopen FullStack Fieldbook. If an update is waiting, close all Fieldbook tabs and app windows before reopening.</p>
 <p>Course downloads and your saved progress are stored separately.</p>
-<p><a href="/settings">Try opening Settings again</a></p></main></html>`, {
+<p><a href="/settings">Try opening Settings again</a></p>`}</main></html>`, {
     status: 503,
     headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
   })
@@ -84,7 +105,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url)
   if (request.method !== 'GET' || url.origin !== self.location.origin) return
   if (request.mode === 'navigate' && pagePath.test(url.pathname)) {
-    event.respondWith(availablePage())
+    event.respondWith(availablePage(request))
   } else if (!url.search && entries.has(url.pathname)) {
     event.respondWith((async () => {
       const cached = await caches.open(CACHE).then((cache) => cache.match(address(url.pathname), { ignoreVary: true })).catch(() => undefined)

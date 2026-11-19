@@ -164,7 +164,7 @@ describe('Week 1 authored content', () => {
       notes: legacy.notes,
       evidence: [],
       lastLessonId: legacy.lastLessonId,
-      contentVersion: 'w12.1',
+      contentVersion: 'w12.2',
     })
     expect(db.get('fullstack-fieldbook.phase1.v1')).toBe(old)
     expect(db.has(STORAGE_KEY)).toBe(false)
@@ -221,7 +221,7 @@ describe('Week 1 practical evidence', () => {
       noteDrafts: { [entry.id]: 'My draft' },
     }
     expect(validate(old)).toMatchObject({
-      contentVersion: 'w12.1',
+      contentVersion: 'w12.2',
       evidence: passed.evidence,
       noteDrafts: old.noteDrafts,
     })

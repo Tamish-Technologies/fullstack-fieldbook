@@ -1,8 +1,22 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
 import { runWeekTwoLab, solutions } from './week-two-journey'
+import { answerQuizRetry } from './quiz-retry'
 
 const review = 'http://127.0.0.1:4174/review/week/02/lesson/'
+test('Week 2 readiness retry applies the global task count to a new example', async ({ page }) => {
+  await page.goto(review + '11')
+  await page.getByRole('button', { name: 'Start knowledge check' }).click()
+  for (const question of await page.locator('.question').all()) {
+    await question.getByRole('radio').first().check()
+  }
+  await page.getByRole('button', { name: 'Check answers' }).click()
+  await page.getByRole('button', { name: 'Retry with another example' }).click()
+  await expect(page.getByRole('group').filter({ hasText: 'Open tasks across the whole list' })).toBeVisible()
+  await answerQuizRetry(page, 'p1-w02-l11')
+  await expect(page.getByRole('heading', { name: /Quiz passed/ })).toBeVisible()
+})
+
 test('all Week 2 readings are reviewable without earning progress and unfinished labs fail', async ({
   page,
 }) => {

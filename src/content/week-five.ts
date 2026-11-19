@@ -37,12 +37,12 @@ const lessons: Reading[] = [
     heading: 'Start the React project from the right folder',
     explanation: [
       'Extract the whole ZIP. Open a terminal in the folder containing package.json, index.html, src and tests. Node runs development tools and the helper tests. npm installs the dependencies declared in package.json and runs its scripts. Vite serves the development page and transforms JSX. React mounts the interface in the browser. This setup requires no application backend or login.',
-      'Run the commands below. The first install needs the packages available from a registry or cache. npm creates node_modules and a lockfile recording the resolved versions. Keep the lockfile with your project. Leave the dev terminal running, open its printed Local address and use a second terminal in the same folder for tests or build. The 25 starter tests cover existing JavaScript helpers. They can pass while the React task buttons still need wiring.',
+      'Run the commands below. The starter includes package-lock.json. npm ci installs the exact dependency tree in that file, so your setup matches the tested starter. The first install needs the registry or a populated npm cache. Leave the dev terminal running, open its printed Local address and use a second terminal in the same folder for tests or build. The 25 starter tests cover the helper functions. They can pass while the React task buttons still need wiring.',
     ],
     predict:
       'Which command leaves a local server running, and which one creates the production files?',
     example:
-      'node --version\nnpm --version\nnpm install\nnpm run dev\n\n# In a second terminal, in the same project folder\nnpm test\nnpm run build',
+      'node --version\nnpm --version\nnpm ci\nnpm run dev\n\n# In a second terminal, in the same project folder\nnpm test\nnpm run build',
     result:
       'npm run dev keeps serving until you press Ctrl+C. npm run build exits after writing dist. The starter’s Vite 7 requires a compatible Node installation. Node 24 was used for this review.',
     followUp: {

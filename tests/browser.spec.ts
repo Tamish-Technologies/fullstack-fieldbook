@@ -58,6 +58,46 @@ async function accessible(page: Page) {
     })),
   ).toEqual([])
 }
+test('two lesson tabs retain their readers and stop writing resume progress when idle', async ({ page, context }) => {
+  await context.addInitScript((key) => {
+    const original = Storage.prototype.setItem
+    const audit = { writes: 0 }
+    Object.defineProperty(window, 'resumeAudit', { value: audit })
+    Storage.prototype.setItem = function (name, value) {
+      if (name === key) audit.writes++
+      return original.call(this, name, value)
+    }
+  }, key)
+  await page.goto(first)
+  await expect.poll(() => page.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? '{}').lastLessonId, key))
+    .toBe('p1-w01-l01')
+  const other = await context.newPage()
+  await other.goto(second)
+  await expect.poll(() => other.evaluate((k) => JSON.parse(localStorage.getItem(k) ?? '{}').lastLessonId, key))
+    .toBe('p1-w01-l02')
+  for (const reader of [page, other]) {
+    await expect(reader.getByRole('heading', { name: 'What you’ll be able to do' })).toBeVisible()
+    const writes = await reader.evaluate(async () => {
+      const audit = (window as unknown as { resumeAudit: { writes: number } }).resumeAudit
+      await new Promise((resolve) => setTimeout(resolve, 250))
+      return audit.writes
+    })
+    expect(writes).toBe(1)
+  }
+  await page.getByLabel('Your private note for this lesson').fill('Two tabs can keep different lessons open.')
+  await page.getByRole('button', { name: 'Save field note' }).click()
+  await expect(page.getByText('Field note saved.', { exact: true })).toBeVisible()
+  await expect(other.getByLabel('Your private note for this lesson')).toHaveValue('')
+})
+
+test('a fresh checkpoint link focuses its target after the lesson renders', async ({ page }) => {
+  await page.goto(first + '#p1-w01-l01-c01')
+  await expect(page.getByRole('heading', { name: 'What you’ll be able to do' })).toBeAttached()
+  const target = page.locator('#p1-w01-l01-c01')
+  await expect(target).toBeFocused()
+  await expect(target).toBeInViewport()
+})
+
 test('first visit, direct locked URL, history and local note survive reload', async ({
   page,
 }) => {

@@ -6,7 +6,7 @@ The owner accepted Week 4, approved D5 engineering, and authorized Week 5 under 
 
 Run `npm run dev` in the Fieldbook repository. On the printed local address, open `/review/week/05/lesson/01`. Follow **Review next lesson** or jump using the lesson numbers. Review mode lets you read, retry quizzes and run the labs without changing regular course progress.
 
-Download **the Week 5 React starter** from Lesson 1 or 2. Extract it and open a terminal beside its `package.json`. With Node 24 and npm available, run `npm install` followed by `npm run dev`. Use the address printed by that second Vite process. The two demo tasks let you try filtering and sorting right away. Add preserves your draft until you connect it. Toggle and Delete show the task ID that reaches the parent. Lesson 7 covers form validation, Lesson 8 wires the task state, and Lesson 10 adds persistence.
+Download **the Week 5 React starter** from Lesson 1 or 2. Extract it and open a terminal beside its `package.json`. With Node 24 and npm available, run `npm ci` followed by `npm run dev`. Use the address printed by that second Vite process. The two demo tasks let you try filtering and sorting right away. Add preserves your draft until you connect it. Toggle and Delete show the task ID that reaches the parent. Lesson 7 covers form validation, Lesson 8 wires the task state, and Lesson 10 adds persistence.
 
 ## Delivery
 
@@ -14,7 +14,7 @@ Download **the Week 5 React starter** from Lesson 1 or 2. Extract it and open a 
 | --- | --- | --- |
 | Readings | `src/content/week-five.ts`, `src/lessons/Article.tsx` | Eleven lessons take the learner from tracing a checkbox through a render to demonstrating and debugging Study Tasks v5. Each includes a worked example, prediction, practice and feedback. |
 | Quizzes and practice | `src/content/week-five-quizzes.ts`, `week-five-practicals.ts`, `src/labs/week-five-frame.js` | Ten quizzes cover 57 scored questions with two prompts each. Three browser labs exercise pure functions for validation, immutable updates and derived views. Nine local checklists ask for observations from the real React project. |
-| Student project | `build/student-projects/study-tasks-v5.zip` | One downloadable project preserves the directory tree, dotfile, helper tests and setup instructions. Authoring used the original Week 5 guide, archived student files and approved A-006 source mapping. Only the 15 student entries are packaged. The browser download regression pins the reviewed digest. |
+| Student project | `build/student-projects/study-tasks-v5.zip` | The download includes student files, helper tests, a pinned dependency lockfile, and license notices. Authoring used the original Week 5 guide, archived student files and approved A-006 source mapping. The browser download regression pins the reviewed digest. |
 | Progress | Course catalog, reader, practical controls and backup validator | Week 4 graduation opens Week 5. Completing all 22 required Week 5 checks unlocks the Week 6 outline. All three enrichment options can be skipped. New exports use `w05.1`; prior valid progress migrates on import. |
 
 ## What was tested

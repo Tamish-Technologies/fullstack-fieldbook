@@ -26,7 +26,7 @@ export function recordQuiz(
   const count = (p.attempts[result.id]?.count ?? 0) + 1
   const attempts = {
     ...p.attempts,
-    [result.id]: { count, lastCorrect: result.correct, at: result.at },
+    [result.id]: { count, lastCorrect: result.correct, scored: result.scored, at: result.at },
   }
   const firstPass =
     passes(result) && !p.evidence.some((e) => e.id === result.id)

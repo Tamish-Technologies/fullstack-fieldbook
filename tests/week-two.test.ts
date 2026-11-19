@@ -32,7 +32,7 @@ describe('Week 2 curriculum and progress', () => {
       contentVersion: 'w01.2',
       notes: { 'p1-w01-l02': 'Sample note' },
     }
-    expect(validate(old)).toEqual({ ...old, contentVersion: 'w12.1' })
+    expect(validate(old)).toEqual({ ...old, contentVersion: 'w12.2' })
     expect(() => recordPractical(emptyProgress(), 'p1-w02-l01-c02')).toThrow(
       /eligible lesson/,
     )

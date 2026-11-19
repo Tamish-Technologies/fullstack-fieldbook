@@ -23,14 +23,15 @@ export type Evidence = Stamp &
     | { method: 'optional-enrichment' }
   )
 export type Theme = 'system' | 'light' | 'dark'
+export const CONTENT_VERSION = 'w12.2'
 export interface Progress {
   schemaVersion: 1
-  contentVersion: 'w12.1'
+  contentVersion: typeof CONTENT_VERSION
   courseId: 'phase-1-full-stack'
   updatedAt: string
   theme: Theme
   lastLessonId: string | null
-  attempts: Record<string, { count: number; lastCorrect: number; at: string }>
+  attempts: Record<string, { count: number; lastCorrect: number; scored?: number; at: string }>
   evidence: Evidence[]
   notes: Record<string, string>
   practicalDrafts?: Record<string, Record<string, string>>
@@ -40,7 +41,7 @@ export interface Progress {
 export function emptyProgress(): Progress {
   return {
     schemaVersion: 1,
-    contentVersion: 'w12.1',
+    contentVersion: CONTENT_VERSION,
     courseId: 'phase-1-full-stack',
     updatedAt: new Date().toISOString(),
     theme: 'system',

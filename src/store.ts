@@ -99,8 +99,10 @@ export function createStore(access: () => StoragePort) {
         'Progress changed in another tab. Review the current record before continuing.',
       )
     }
+    const transformed = transform(before)
+    if (transformed === before && !recover) return
     const next = validate({
-      ...transform(before),
+      ...transformed,
       updatedAt: new Date().toISOString(),
     })
     if (snapshot.phase === 'corrupt' && !recover) {

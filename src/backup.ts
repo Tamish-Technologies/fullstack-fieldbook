@@ -1,4 +1,6 @@
 import { labFor, projects, activeQuizzes as quizzes } from './content/catalog'
+import { publishedQuizScales } from './content/published-quiz-scales'
+import { retryScenarios } from './content/retry-scenarios'
 import { answersValid, type Answers } from './labs/progress'
 import { byId, checkpoints } from './course'
 import {
@@ -13,6 +15,7 @@ export const MAX_FILE = 512 * 1024
 export const MAX_RECORD = 448 * 1024
 export const MAX_NOTE = 2000
 const FORMAT = 'fullstack-fieldbook-progress'
+const quizById = new Map(quizzes.map((q) => [q.checkpoint, q]))
 const bytes = (raw: string) => new TextEncoder().encode(raw).length
 function requireValue(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message)
@@ -128,40 +131,23 @@ function readEvidence(value: unknown): Evidence {
 export function validate(value: unknown): Progress {
   object(value)
   const defaults = emptyProgress()
+  const { contentVersion } = value
+  const version =
+    typeof contentVersion === 'string'
+      ? /^w(0[1-9]|1[0-2])\.1$/.exec(contentVersion)
+      : null
+  const legacy = contentVersion === 'd2.1'
   requireValue(
     value.schemaVersion === 1 &&
       value.courseId === defaults.courseId &&
-      (value.contentVersion === defaults.contentVersion ||
-        value.contentVersion === 'w11.1' ||
-        value.contentVersion === 'w10.1' ||
-        value.contentVersion === 'w09.1' ||
-        value.contentVersion === 'w08.1' ||
-        value.contentVersion === 'w07.1' ||
-        value.contentVersion === 'w06.1' ||
-        value.contentVersion === 'w05.1' ||
-        value.contentVersion === 'w04.1' ||
-        value.contentVersion === 'w03.1' ||
-        value.contentVersion === 'w02.1' ||
-        value.contentVersion === 'w01.2' ||
-        value.contentVersion === 'w01.1' ||
-        value.contentVersion === 'd2.1'),
+      (contentVersion === defaults.contentVersion ||
+        version !== null || contentVersion === 'w01.2' || legacy),
     'Unsupported schema, course or content version.',
   )
-  const legacy = value.contentVersion === 'd2.1'
-  const hasPracticals = [
-    'w01.2',
-    'w02.1',
-    'w03.1',
-    'w04.1',
-    'w05.1',
-    'w06.1',
-    'w07.1',
-    'w08.1',
-    'w09.1',
-    'w10.1',
-    'w11.1',
-    'w12.1',
-  ].includes(String(value.contentVersion))
+  const hasPracticals = !legacy && contentVersion !== 'w01.1'
+  const authoredThrough = contentVersion === defaults.contentVersion
+    ? defaults.contentVersion.slice(1, 3)
+    : (version?.[1] ?? '01')
   fields(value, [
     ...Object.keys(defaults).filter((key) => !legacy || key !== 'attempts'),
     ...(hasPracticals && Object.hasOwn(value, 'practicalDrafts')
@@ -227,18 +213,7 @@ export function validate(value: unknown): Progress {
   } else {
     for (const item of evidence) {
       requireValue(
-        (value.contentVersion === 'w12.1' && /^p1-w(?:0[1-9]|1[0-2])-/.test(item.id)) ||
-          (value.contentVersion === 'w11.1' && /^p1-w(?:0[1-9]|1[01])-/.test(item.id)) ||
-          (value.contentVersion === 'w10.1' && /^p1-w(?:0[1-9]|10)-/.test(item.id)) ||
-          (value.contentVersion === 'w09.1' && /^p1-w0[1-9]-/.test(item.id)) ||
-          (value.contentVersion === 'w08.1' && /^p1-w0[1-8]-/.test(item.id)) ||
-          (value.contentVersion === 'w07.1' && /^p1-w0[1-7]-/.test(item.id)) ||
-          (value.contentVersion === 'w06.1' && /^p1-w0[1-6]-/.test(item.id)) ||
-          (value.contentVersion === 'w05.1' && /^p1-w0[1-5]-/.test(item.id)) ||
-          (value.contentVersion === 'w04.1' && /^p1-w0[1234]-/.test(item.id)) ||
-          (value.contentVersion === 'w03.1' && /^p1-w0[123]-/.test(item.id)) ||
-          (value.contentVersion === 'w02.1' && item.id.startsWith('p1-w02-')) ||
-          item.id.startsWith('p1-w01-'),
+        item.id.slice(4, 6) <= authoredThrough,
         'This assessment was unavailable in the saved content version.',
       )
       if (hasPracticals && item.method === 'browser-code-auto') {
@@ -258,13 +233,16 @@ export function validate(value: unknown): Progress {
         )
         continue
       }
-      const quiz = quizzes.find((q) => q.checkpoint === item.id)
+      const quiz = quizById.get(item.id)
       requireValue(
-        item.method === 'quiz-auto' &&
-          quiz &&
-          item.scored === quiz.questions.length &&
-          item.essentials === quiz.questions.filter((q) => q.essential).length,
-        'This checkpoint has no active assessment matching that evidence.',
+        item.method === 'quiz-auto' && quiz && (
+          (item.scored === quiz.questions.length &&
+            item.essentials === quiz.questions.filter((q) => q.essential).length) ||
+          publishedQuizScales.get(item.id)?.some(
+            ([scored, essentials]) => item.scored === scored && item.essentials === essentials,
+          )
+        ),
+        'This checkpoint has no active assessment or published score scale matching that evidence.',
       )
     }
   }
@@ -294,41 +272,53 @@ export function validate(value: unknown): Progress {
         record.noteDrafts[id] = draft
       }
     }
+    object(value.attempts)
+    for (const [id, summary] of Object.entries(value.attempts)) {
+      const quiz = quizById.get(id)
+      requireValue(
+        quiz && !state.blocked.has(id.slice(0, -4)),
+        'Unknown or locked quiz attempt.',
+      )
+      object(summary)
+      const hasScored = Object.hasOwn(summary, 'scored')
+      fields(summary, ['count', 'lastCorrect', 'at', ...(hasScored ? ['scored'] : [])])
+      requireValue(timestamp(summary.at), 'Invalid attempt timestamp.')
+      const scored = hasScored ? count(summary.scored, 1000, 1) : undefined
+      const totals = [quiz.questions.length, ...(publishedQuizScales.get(id) ?? []).map(([total]) => total)]
+      requireValue(scored === undefined || totals.includes(scored), 'Unknown quiz attempt score scale.')
+      record.attempts[id] = {
+        count: count(summary.count, Number.MAX_SAFE_INTEGER, 1),
+        lastCorrect: count(summary.lastCorrect, scored ?? Math.max(...totals)),
+        ...(scored !== undefined && { scored }),
+        at: summary.at,
+      }
+    }
     if (value.quizDrafts !== undefined) {
       object(value.quizDrafts)
       record.quizDrafts = {}
       for (const [id, choices] of Object.entries(value.quizDrafts)) {
-        const quiz = quizzes.find((q) => q.checkpoint === id)
+        const quiz = quizById.get(id)
         requireValue(
           quiz && !state.blocked.has(id.slice(0, -4)),
           'Unknown or locked quiz draft.',
         )
         object(choices)
         const answers: Record<string, number> = {}
+        const older = contentVersion !== defaults.contentVersion
+        const wasRetry = (record.attempts[id]?.count ?? 0) % 2 === 1
         for (const [question, choice] of Object.entries(choices)) {
+          const answer = count(choice, 2)
+          const current = quiz.questions.some((q) => q.id === question)
+          if (older && !current && /^p1-w\d{2}-l\d{2}-q\d{2}$/.test(question) &&
+            question.slice(0, -4) === id.slice(0, -4)) continue
           requireValue(
-            quiz.questions.some((q) => q.id === question),
+            current,
             'Unknown draft question.',
           )
-          answers[question] = count(choice, 2)
+          if (older && wasRetry && retryScenarios.has(question)) continue
+          answers[question] = answer
         }
-        record.quizDrafts[id] = answers
-      }
-    }
-    object(value.attempts)
-    for (const [id, summary] of Object.entries(value.attempts)) {
-      const quiz = quizzes.find((q) => q.checkpoint === id)
-      requireValue(
-        quiz && !state.blocked.has(id.slice(0, -4)),
-        'Unknown or locked quiz attempt.',
-      )
-      object(summary)
-      fields(summary, ['count', 'lastCorrect', 'at'])
-      requireValue(timestamp(summary.at), 'Invalid attempt timestamp.')
-      record.attempts[id] = {
-        count: count(summary.count, Number.MAX_SAFE_INTEGER, 1),
-        lastCorrect: count(summary.lastCorrect, quiz.questions.length),
-        at: summary.at,
+        if (Object.keys(answers).length) record.quizDrafts[id] = answers
       }
     }
   }

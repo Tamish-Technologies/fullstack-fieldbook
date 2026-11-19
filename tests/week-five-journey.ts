@@ -32,7 +32,7 @@ const answers: Record<string, string[]> = {
   '02': [
     'Run local development tooling',
     'src/main.jsx using createRoot',
-    'Run npm install in the project folder',
+    'Run npm ci in the project folder',
     'package-lock.json',
   ],
   '03': [

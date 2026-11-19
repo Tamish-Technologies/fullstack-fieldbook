@@ -46,7 +46,7 @@ export function Practical({
     setError('')
     setStatus('')
     try {
-      if (!store || (lab && /^p1-w(?:0[3-9]|1[0-2])-/.test(id))) return
+      if (!store) return
       await store.update((p) => {
         const draft = { ...p.practicalDrafts?.[id] }
         if (draft[key] !== before)
@@ -173,6 +173,7 @@ export function Practical({
               concept={answers.concept ?? ''}
               setConcept={(v) => void edit('concept', v)}
               code={answers.code ?? lab.starter}
+              keepsDraft={!!store}
               edit={(v) => void edit('code', v)}
               onPass={() => void pass()}
             />

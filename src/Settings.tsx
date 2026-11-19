@@ -167,7 +167,7 @@ export function Settings({
         sourceVersion === 'd2.1'
           ? ' This foundation backup carries forward notes and preferences only. Demo passes are excluded.'
           : sourceVersion !== next.contentVersion
-            ? ' Compatible progress from this earlier course version is included.'
+            ? ' Earned quiz credit carries forward. Review any unfinished quiz where questions have changed.'
             : ''
       show(
         {

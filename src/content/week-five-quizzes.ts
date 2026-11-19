@@ -77,10 +77,10 @@ export const weekFiveQuizzes = [
     [
       'What should a learner do after extracting package.json but before starting Vite for the first time?',
       'Vite is missing from a fresh project with no node_modules. Which step supplies it?',
-      'Run npm install in the project folder',
+      'Run npm ci in the project folder',
       'Open the ZIP in the browser',
       'Paste the lockfile into App.jsx',
-      'Installation resolves the declared local dependencies.',
+      'npm ci installs the dependency versions recorded in the supplied lockfile.',
       'Browsing an archive does not install tools.',
       'Dependency metadata is separate from components.',
     ],

@@ -31,7 +31,6 @@ export function answersValid(id: string, answers: Answers, complete = false) {
     )
   }
   if (!labFor(id)) return false
-  if (/^p1-w(?:0[3-9]|1[0-2])-/.test(id)) return Object.keys(answers).length === 0
   return Object.entries(answers).every(
     ([k, v]) =>
       typeof v === 'string' &&
@@ -40,7 +39,10 @@ export function answersValid(id: string, answers: Answers, complete = false) {
         : (k === 'code' && v.length <= 4000) ||
           (id === 'p1-w02-l01-c02' &&
             k === 'concept' &&
-            ['neither', 'property', 'rebind'].includes(v))),
+            ['neither', 'property', 'rebind'].includes(v)) ||
+          (id === 'p1-w03-l09-c01' &&
+            k === 'concept' &&
+            ['filter', 'mutation', 'id'].includes(v))),
   )
 }
 export function recordPractical(
