@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState, type MouseEvent } from 'react'
 import { starterFiles } from '../content/starter'
 import { weekOne } from '../content/week-one'
 import { weekTwo } from '../content/week-two'
@@ -13,6 +13,7 @@ import { weekNine } from '../content/week-nine'
 import { weekTen } from '../content/week-ten'
 import { weekEleven } from '../content/week-eleven'
 import { weekTwelve } from '../content/week-twelve'
+import { saveDownload } from '../download'
 const weekFourStarter = import.meta.glob<string>(
   '../content/week-four-starter/*',
   { eager: true, query: '?raw', import: 'default' },
@@ -86,6 +87,43 @@ function FirstTaskExample() {
   )
 }
 
+function StarterArchive({ version, children }: { version: number; children: string }) {
+  const name = `study-tasks-v${version}.zip`
+  const path = `/projects/${name}`
+  const [status, setStatus] = useState<'idle' | 'loading' | 'failed'>('idle')
+  async function download(event: MouseEvent<HTMLAnchorElement>) {
+    if (
+      !navigator.serviceWorker?.controller || event.defaultPrevented ||
+      event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
+    ) return
+    event.preventDefault()
+    if (status === 'loading') return
+    setStatus('loading')
+    try {
+      // WebKit can bypass the service worker for native attachment downloads.
+      const response = await fetch(path)
+      if (!response.ok || response.headers.get('Content-Type')?.startsWith('text/html')) throw Error()
+      saveDownload(await response.blob(), name)
+      setStatus('idle')
+    } catch {
+      setStatus('failed')
+    }
+  }
+  return (
+    <>
+      <a className="secondary" href={path} download={name} onClick={download}>
+        {children}
+      </a>
+      <div role="status" aria-atomic="true">
+        {status === 'loading' && <p>Preparing the starter download…</p>}
+        {status === 'failed' && (
+          <p className="notice">The starter download could not finish. Reconnect and try again.</p>
+        )}
+      </div>
+    </>
+  )
+}
+
 export default function Article({ lesson }: { lesson: Lesson }) {
   const r = readings[lesson.id]!
   const orientation = lesson.id === 'p1-w01-l01'
@@ -154,13 +192,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             the inherited baseline. The planning tests guide the work you
             will implement.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v12.zip"
-            href="/projects/study-tasks-v12.zip"
-          >
+          <StarterArchive version={12}>
             Download the Week 12 capstone starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {lesson.id === 'p1-w11-l01' && (
@@ -171,13 +205,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             guide explains which tests should fail before you fix the four
             practice defects.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v11.zip"
-            href="/projects/study-tasks-v11.zip"
-          >
+          <StarterArchive version={11}>
             Download the Week 11 reliability starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {lesson.id === 'p1-w10-l01' && (
@@ -188,13 +218,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             accounts and a separate practice PostgreSQL database. Lessons 3 and
             4 walk through hashing and migration.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v10.zip"
-            href="/projects/study-tasks-v10.zip"
-          >
+          <StarterArchive version={10}>
             Download the Week 10 authentication starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {lesson.id === 'p1-w09-l01' && (
@@ -204,13 +230,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             Extract both folders together. Open START_HERE.md and set up the
             separate development and test databases in Lesson 2.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v9.zip"
-            href="/projects/study-tasks-v9.zip"
-          >
+          <StarterArchive version={9}>
             Download the Week 9 PostgreSQL starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {lesson.id === 'p1-w08-l01' && (
@@ -220,13 +242,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             Extract both folders together. Start the working Express server and
             the React starter in separate terminals.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v8.zip"
-            href="/projects/study-tasks-v8.zip"
-          >
+          <StarterArchive version={8}>
             Download the Week 8 React and Express starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {lesson.id === 'p1-w07-l01' && (
@@ -236,13 +254,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             Download the starter and extract both folders together. Begin in
             backend. The separate frontend is used in Lesson 11.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v7.zip"
-            href="/projects/study-tasks-v7.zip"
-          >
+          <StarterArchive version={7}>
             Download the Week 7 Node and React starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {lesson.id === 'p1-w06-l01' && (
@@ -252,13 +266,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             Download and extract the ZIP in a new folder. The task list already
             runs. You will add the Ideas inbox and routes as you go.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v6.zip"
-            href="/projects/study-tasks-v6.zip"
-          >
+          <StarterArchive version={6}>
             Download the Week 6 React starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {['p1-w05-l01', 'p1-w05-l02'].includes(lesson.id) && (
@@ -269,13 +279,9 @@ export default function Article({ lesson }: { lesson: Lesson }) {
             together. Start in the folder containing package.json. The two demo
             rows let you explore the view before you wire its buttons.
           </p>
-          <a
-            className="secondary"
-            download="study-tasks-v5.zip"
-            href="/projects/study-tasks-v5.zip"
-          >
+          <StarterArchive version={5}>
             Download the Week 5 React starter
-          </a>
+          </StarterArchive>
         </section>
       )}
       {['p1-w02-l01', 'p1-w03-l01', 'p1-w04-l01'].includes(lesson.id) && (

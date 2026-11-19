@@ -3,7 +3,6 @@ import { once } from 'node:events'
 import { readFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
 import { test, expect, type Page } from '@playwright/test'
-import AxeBuilder from '@axe-core/playwright'
 
 const lesson = '/course/week/01/lesson/01'
 const cachePrefix = 'fullstack-fieldbook-release-'
@@ -40,11 +39,25 @@ async function releaseHost() {
   ])
   const version = createHash('sha256').update(updatedIndex).digest('hex').slice(0, 20)
   const updatedWorker = worker.replace(/^const RELEASE = .*\nconst FILES = .*\n/,
-    'const RELEASE = ' + JSON.stringify(version) + '\nconst FILES = ' + JSON.stringify(updatedFiles) + '\n')
+    'const RELEASE = ' + JSON.stringify(version) + '\nconst FILES = ' + JSON.stringify(updatedFiles) + '\n') + `
+self.addEventListener('activate', (event) => {
+  event.waitUntil(fetch('/qa-activating-release', { method: 'POST' }))
+})\n`
   let newest = false
   let tampered = false
+  let reachable = true
+  let activating = false
   const server = createServer((req, res) => {
     const path = new URL(req.url ?? '/', 'http://localhost').pathname
+    if (!reachable) {
+      res.destroy()
+      return
+    }
+    if (path === '/qa-activating-release' && req.method === 'POST') {
+      activating = true
+      res.writeHead(204).end()
+      return
+    }
     const route = /^(?:\/(?:course|settings|progress)?|\/course\/week\/\d{2}(?:\/lesson\/\d{2})?)$/.test(path)
     const target = route ? '/index.html' : path
     const type = target.endsWith('.html') ? 'text/html'
@@ -67,6 +80,8 @@ async function releaseHost() {
     origin: 'http://127.0.0.1:' + details.port,
     makeUpdateAvailable: () => { newest = true },
     tamperWithDownload: (value: boolean) => { tampered = value },
+    setReachable: (value: boolean) => { reachable = value },
+    updateIsActivating: () => activating,
     close: () => new Promise<void>((resolve) => {
       server.close(() => resolve())
       server.closeAllConnections()
@@ -81,7 +96,6 @@ test('a fresh learner writes a note and moves a backup between offline browser p
   await page.getByRole('button', { name: 'Download course', exact: true }).click()
   await expect(page.getByText(readyText)).toBeVisible({ timeout: 15000 })
   expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
-  expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
 
   await page.context().setOffline(true)
   await recordNote(page, lesson)
@@ -127,8 +141,10 @@ test('an incomplete download fails safely, and a missing cache can be repaired',
   try {
     host.tamperWithDownload(true)
     await page.goto(host.origin + '/settings')
+    const feedback = page.getByRole('status', { name: 'Offline download feedback' })
+    await expect(feedback).toBeEmpty()
     await page.getByRole('button', { name: 'Download course', exact: true }).click()
-    await expect(page.getByText(/course download could not finish/)).toBeVisible({ timeout: 15000 })
+    await expect(feedback).toContainText(/course download could not finish/, { timeout: 15000 })
     await expect(page.getByText(readyText)).toHaveCount(0)
     expect(await page.evaluate(() => navigator.serviceWorker.controller)).toBeNull()
     host.tamperWithDownload(false)
@@ -149,10 +165,11 @@ test('an incomplete download fails safely, and a missing cache can be repaired',
       const key = (await caches.keys()).find((name) => name.startsWith(prefix))!
       await caches.delete(key)
     }, cachePrefix)
-    await page.context().setOffline(true)
+    // The origin also fails requests made directly by a service worker.
+    host.setReachable(false)
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Offline copy unavailable' })).toBeVisible()
-    await page.context().setOffline(false)
+    host.setReachable(true)
     await page.getByRole('link', { name: 'Try opening Settings again' }).click()
     await expect(page.getByText(readyText)).toBeVisible()
     await page.goto(host.origin + lesson)
@@ -201,12 +218,12 @@ test('a downloaded update waits for existing tabs and preserves learner progress
     const oldTab = await context.newPage()
     await oldTab.goto(host.origin + '/settings')
     await expect(oldTab.getByText(readyText)).toBeVisible()
+    const courseUpdate = oldTab.getByRole('status', { name: 'Course update' })
+    await expect(courseUpdate).toBeEmpty()
     host.makeUpdateAvailable()
-    const [updateWorker] = await Promise.all([
-      context.waitForEvent('serviceworker'),
-      oldTab.getByRole('button', { name: 'Check for updates' }).click(),
-    ])
-    await expect(oldTab.getByText(/An update is ready/)).toBeVisible()
+    await oldTab.getByRole('button', { name: 'Check for updates' }).click()
+    await expect(courseUpdate).toContainText('An update is ready')
+    expect(host.updateIsActivating()).toBe(false)
     expect(await oldTab.locator('meta[name=qa-release]').count()).toBe(0)
     expect(await oldTab.evaluate(async (prefix) =>
       (await caches.keys()).filter((name) => name.startsWith(prefix)).length, cachePrefix)).toBe(2)
@@ -215,11 +232,7 @@ test('a downloaded update waits for existing tabs and preserves learner progress
     expect(await oldTab.locator('meta[name=qa-release]').count()).toBe(0)
     await page.close()
     await oldTab.close()
-    // Closing the last tab lets the browser activate the worker asynchronously.
-    await expect.poll(() => updateWorker.evaluate(() => {
-      const scope = self as unknown as { serviceWorker: ServiceWorker }
-      return scope.serviceWorker.state
-    })).toBe('activated')
+    await expect.poll(host.updateIsActivating).toBe(true)
     const updated = await context.newPage()
     await updated.goto(host.origin + '/settings')
     await expect(updated.locator('meta[name=qa-release]')).toHaveAttribute('content', 'updated')

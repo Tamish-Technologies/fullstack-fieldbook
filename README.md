@@ -22,9 +22,16 @@ For example, after you understand how an HTTP endpoint validates input and retur
 - Develop Node.js and Express APIs, store data in PostgreSQL, and implement authentication and authorization.
 - Test and debug a full-stack application, then put the pieces together in a capstone.
 
-Start with Week 1 and work through the lessons at your own pace. Quizzes follow the lessons, and required practice checks unlock later weeks. Browser labs run in the Fieldbook app. The full-stack projects run on your own computer, where you verify them using the provided tests and checklists.
+## Study online
 
-The course site runs without accounts, a backend, or a paid AI subscription. Fieldbook stores progress and notes in your browser. In the release build, you can download the course for offline study and export your progress as a JSON backup.
+The course will be available at [fullstack.tamishtech.com](https://fullstack.tamishtech.com). Until it launches, follow the local setup below.
+
+1. Open the course roadmap and start with **Week 1**. Read each lesson before trying its quiz. Complete the required quizzes, labs, and project checks to unlock the next week.
+2. Run browser labs in Fieldbook. For full-stack projects, download the starter and follow the lesson’s instructions to run and verify it on your computer.
+3. To study offline, open **Settings → Offline study**, choose **Download course**, and wait for **Ready for offline study** before disconnecting.
+4. Your progress and notes stay in the current browser. Use **Settings → Backup & restore** to export a JSON backup and import it when switching browsers or devices.
+
+The course is free and requires no account or paid AI subscription.
 
 ## Run locally
 

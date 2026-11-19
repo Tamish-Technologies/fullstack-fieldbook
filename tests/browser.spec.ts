@@ -154,6 +154,8 @@ test('backup round trip, confirmed restore, reset cascade, backup offer and safe
   await expect(page.getByLabel('Import backup', { exact: true })).toBeFocused()
   await upload(page, payload())
   await dialog.getByRole('button', { name: 'Confirm replacement' }).click()
+  await expect(page.getByRole('status', { name: 'Backup feedback' }))
+    .toContainText('Your backup was restored.')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Export backup', exact: true }).click()
@@ -179,7 +181,8 @@ test('backup round trip, confirmed restore, reset cascade, backup offer and safe
   await expect(trigger).toBeFocused()
   await trigger.click()
   await dialog.getByRole('button', { name: 'Confirm replacement' }).click()
-  await expect(page.getByRole('status')).toContainText('Progress updated')
+  await expect(page.getByRole('status', { name: 'Reset feedback' }))
+    .toContainText('Progress updated')
   await page.goto(second)
   await expect(page.getByRole('heading', { level: 1 })).toContainText(
     'Semantic HTML',
@@ -209,6 +212,8 @@ test('backup round trip, confirmed restore, reset cascade, backup offer and safe
 })
 test('bad imports preserve the exact saved record', async ({ page }) => {
   await page.goto('/settings')
+  const feedback = page.getByRole('status', { name: 'Backup feedback' })
+  await expect(feedback).toBeEmpty()
   await page.getByRole('radio', { name: 'dark', exact: true }).check()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
   const original = await page.evaluate((k) => localStorage.getItem(k), key)
@@ -219,7 +224,7 @@ test('bad imports preserve the exact saved record', async ({ page }) => {
     [payload({ ...progress, schemaVersion: 2 }), 'Unsupported schema'],
   ]) {
     await upload(page, body!)
-    await expect(page.getByRole('status')).toContainText(message!)
+    await expect(feedback).toContainText(message!)
     expect(await page.evaluate((k) => localStorage.getItem(k), key)).toBe(
       original,
     )
@@ -228,11 +233,13 @@ test('bad imports preserve the exact saved record', async ({ page }) => {
 for (const width of [320, 834, 1440])
   test(
     'responsive reading, focus and contrast at ' + width,
-    async ({ page }) => {
+    async ({ page, browserName }) => {
       await page.setViewportSize({ width, height: 900 })
       await page.emulateMedia({ reducedMotion: 'reduce', colorScheme: 'light' })
       await page.goto('/')
-      await page.keyboard.press('Tab')
+      // macOS WebKit uses Option-Tab to include links in the tab order.
+      const tab = browserName === 'webkit' && process.platform === 'darwin' ? 'Alt+Tab' : 'Tab'
+      await page.keyboard.press(tab)
       await expect(
         page.getByRole('link', { name: 'Skip to main content' }),
       ).toBeFocused()
@@ -252,7 +259,7 @@ for (const width of [320, 834, 1440])
         await expect(
           drawer.getByRole('button', { name: 'Close menu' }),
         ).toBeFocused()
-        await page.keyboard.press('Shift+Tab')
+        await page.keyboard.press('Shift+' + tab)
         expect(await drawer.locator(':focus').count()).toBe(1)
         await accessible(page)
         await page.keyboard.press('Escape')
@@ -268,7 +275,7 @@ for (const width of [320, 834, 1440])
         await accessible(page)
         if (path === second) {
           await page.getByLabel('HTML editor').focus()
-          await page.keyboard.press('Tab')
+          await page.keyboard.press(tab)
           await expect(page.getByText('What the lab checks')).toBeFocused()
           await page.keyboard.press('Enter')
           await expect(
@@ -347,7 +354,8 @@ test('a second tab invalidates a pending overwrite preview', async ({
   await other.getByRole('radio', { name: 'light', exact: true }).check()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await page.getByRole('button', { name: 'Confirm replacement' }).click()
-  await expect(page.getByRole('status')).toContainText('Review a new preview')
+  await expect(page.getByRole('status', { name: 'Backup feedback' }))
+    .toContainText('Review a new preview')
   expect(
     JSON.parse((await page.evaluate((k) => localStorage.getItem(k), key))!)
       .evidence,

@@ -27,4 +27,12 @@ Public hosting, final publication rights and licensing, and the independent huma
 
 - [MDN service-worker lifecycle](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers)
 - [MDN Cache.addAll](https://developer.mozilla.org/en-US/docs/Web/API/Cache/addAll)
+
+## Cross-browser and accessibility follow-up
+
+Release `6eab3f78c7b2376fdf18` passed TypeScript, the production build, the offline asset check, and 172 unit tests. Chrome 157, Playwright Firefox 159, and Playwright WebKit 27.2 each passed the 67 browser scenarios across the full run and focused retests. Each engine completed the 268-checkpoint offline journey and saved the capstone ZIP. The Firefox backup scenario crashed when an axe scan and service-worker installation ran in the same page. The responsive suite still runs axe on Settings, and the separate offline backup scenario passed twice on each engine.
+
+Project ZIP downloads now ask the service worker for the file when it controls the page. WebKit saved the cached ZIP with the expected name and bytes while offline. A keyboard and accessibility-tree check in WebKit at 320 CSS pixels verified lesson landmarks, quiz labels, focus on the first unanswered question, the focused passing result, and the malformed backup status.
+
+Spoken VoiceOver verification remains pending because native screen capture failed and macOS denied assistive access to the terminal fallback. The independent learner pilot and live-host checks remain pending.
 - [Vite static deployment](https://vite.dev/guide/static-deploy.html)

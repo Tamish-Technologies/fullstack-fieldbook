@@ -7,9 +7,15 @@ const review = 'http://127.0.0.1:4174/review/week/02/lesson/'
 test('Week 2 readiness retry applies the global task count to a new example', async ({ page }) => {
   await page.goto(review + '11')
   await page.getByRole('button', { name: 'Start knowledge check' }).click()
+  const error = page.getByRole('alert')
+  await expect(error).toBeEmpty()
+  await page.getByRole('button', { name: 'Check answers' }).click()
+  await expect(error).toHaveText('Choose an answer for question 1.')
+  await expect(page.getByRole('radio').first()).toBeFocused()
   for (const question of await page.locator('.question').all()) {
     await question.getByRole('radio').first().check()
   }
+  await expect(error).toBeEmpty()
   await page.getByRole('button', { name: 'Check answers' }).click()
   await page.getByRole('button', { name: 'Retry with another example' }).click()
   await expect(page.getByRole('group').filter({ hasText: 'Open tasks across the whole list' })).toBeVisible()

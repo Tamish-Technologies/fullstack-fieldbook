@@ -60,6 +60,7 @@ export function QuizForm({
   async function choose(question: string, choice: number) {
     if (!store) {
       setLocalAnswers((a) => ({ ...a, [question]: choice }))
+      setError('')
       return
     }
     setPendingChoices((a) => ({ ...a, [question]: choice }))
@@ -124,9 +125,20 @@ export function QuizForm({
       )}
       {started && (
         <form
+          noValidate
           onSubmit={async (e) => {
             e.preventDefault()
             if (busy || result) return
+            const missing = quiz.questions.findIndex((q) => answers[q.id] === undefined)
+            const question = quiz.questions[missing]
+            if (question) {
+              setError(`Choose an answer for question ${missing + 1}.`)
+              const radios = e.currentTarget.elements.namedItem(id + question.id)
+              if (radios instanceof RadioNodeList && radios[0] instanceof HTMLInputElement) {
+                radios[0].focus()
+              }
+              return
+            }
             setBusy(true)
             setError('')
             try {
@@ -169,6 +181,9 @@ export function QuizForm({
               </span>
             </div>
           )}
+          <div role="alert" aria-atomic="true">
+            {error && <p className="notice">{error}</p>}
+          </div>
           {quiz.questions.map((q, i) => {
             const { variant: [stem, ...options], feedback } = quizForm(q, retry)
             const order = answerOrder(q.id, attempt)
@@ -216,7 +231,6 @@ export function QuizForm({
               {busy ? 'Checking…' : 'Check answers'}
             </button>
           )}
-          {error && <p role="alert">{error}</p>}
         </form>
       )}
       {result && (

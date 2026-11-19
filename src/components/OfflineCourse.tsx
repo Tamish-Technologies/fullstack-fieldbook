@@ -183,13 +183,17 @@ export function OfflineCourse() {
               {availability === 'missing' ? 'Download course again' : 'Download course'}
             </button>
           )}
-          {waiting && (
-            <p className="notice" aria-live="polite">
-              An update is ready. Finish your work, close all Fieldbook tabs and app windows,
-              then reopen Fieldbook. Your saved progress stays in this browser.
-            </p>
-          )}
-          <p aria-live="polite" hidden={!message}>{message}</p>
+          <div role="status" aria-label="Course update" aria-atomic="true">
+            {waiting && (
+              <p className="notice">
+                An update is ready. Finish your work, close all Fieldbook tabs and app windows,
+                then reopen Fieldbook. Your saved progress stays in this browser.
+              </p>
+            )}
+          </div>
+          <div role="status" aria-label="Offline download feedback" aria-atomic="true">
+            {message && <p>{message}</p>}
+          </div>
         </>
       )}
     </section>

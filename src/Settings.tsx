@@ -12,18 +12,10 @@ import {
 import type { ProgressStore } from './store'
 import { Dialog } from './components/Dialog'
 import { OfflineCourse } from './components/OfflineCourse'
+import { saveDownload } from './download'
 
 function download(text: string, name: string) {
-  const url = URL.createObjectURL(
-    new Blob([text], { type: 'application/json' }),
-  )
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = name
-  document.body.append(anchor)
-  anchor.click()
-  anchor.remove()
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  saveDownload(new Blob([text], { type: 'application/json' }), name)
 }
 function backup(p: Progress) {
   download(
@@ -48,6 +40,13 @@ function summary(p: Progress) {
   ].join(', ')
 }
 type NoticeArea = 'backup' | 'reset' | 'appearance'
+function SettingsFeedback({ label, text }: { label: string; text?: string }) {
+  return (
+    <div role="status" aria-label={label} aria-atomic="true">
+      {text && <p className="notice">{text}</p>}
+    </div>
+  )
+}
 type Preview = {
   area: 'backup' | 'reset'
   before: Progress
@@ -261,7 +260,7 @@ export function Settings({
             </label>
           ))}
         </fieldset>
-        {message?.area === 'appearance' && <p role="status" className="notice">{message.text}</p>}
+        <SettingsFeedback label="Appearance feedback" text={message?.area === 'appearance' ? message.text : undefined} />
       </section>
       <OfflineCourse />
       <section className="panel" aria-labelledby="backup-heading">
@@ -296,7 +295,7 @@ export function Settings({
           Choose a Fieldbook backup up to 512 KiB. You’ll see a preview before
           it replaces this browser’s progress.
         </p>
-        {message?.area === 'backup' && <p role="status" className="notice">{message.text}</p>}
+        <SettingsFeedback label="Backup feedback" text={message?.area === 'backup' ? message.text : undefined} />
         {recovery !== null && (
           <>
             <p>The recovery copy contains the unreadable record. Choose a valid
@@ -391,7 +390,7 @@ export function Settings({
         >
           <RotateCcw /> Preview reset
         </button>
-        {message?.area === 'reset' && <p role="status" className="notice">{message.text}</p>}
+        <SettingsFeedback label="Reset feedback" text={message?.area === 'reset' ? message.text : undefined} />
       </section>
       <section className="panel" aria-labelledby="privacy-heading">
         <h2 id="privacy-heading">Privacy</h2>
