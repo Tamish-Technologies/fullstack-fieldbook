@@ -4,6 +4,8 @@
 
 FullStack Fieldbook is a free, self-paced, 12-week course for anyone curious about computer science and ready to build real web applications. Created by **Tamish Technologies**, it takes you from your first HTML page to a full-stack capstone through guided lessons, quizzes, coding labs, and projects.
 
+**If FullStack Fieldbook helps you learn, star this repository to show your support.** Have an idea for a clearer lesson or a better exercise? [Contributions are welcome](#contribute).
+
 ## Learn with AI, build with understanding
 
 AI makes this an unusually good time to learn software development. It can explain an unfamiliar idea, help you debug a problem, and take on repetitive implementation work. The more you understand about the browser, HTTP, databases, and testing, the better you can direct AI and judge what it builds.
